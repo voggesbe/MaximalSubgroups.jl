@@ -154,51 +154,77 @@ function p_a(R::RootSystem, v, w, f)
     end
   elseif S == :C
     if typeof(v) <: Tuple
-      k = v[1]
-      nk = v[2]
-      num_list = []
-      for m = 0:nk-2
-        num_list = vcat(num_list, [m*k + r for r = 1:k-1])
-      end
-      for m = 0:nk-2
-        num_list = vcat(num_list, findall(==(-1*(2*sum([ro[i] for i = m*k+1:n-1])+ro[n])), ro)[1])
-      end
-      v0 = vcat(num_list, [n-r for r in 0:k-1])
-      v = [ro[v0[i]] for i = 1:length(v0)]
-    end
-    if typeof(w) <: Tuple
-      d=w[1]
-      r=w[2]
-      num_tup = [];
-      for m = 0:nk-2
-        num_tup = vcat(num_tup, findall(==(-1*(2*sum([ro[i] for i = m*k+1:n-1])+ro[n])), ro)[1]);
-      end
-      num_tup = vcat(num_tup,n);
-      num_tup_2 = [];
-      for r = 1:k-1
-        num_tup_2 = vcat(num_tup_2, [[]])
-        num_tup_2[r] = [m * k + r for m = 0:nk-2]
-        num_tup_2[r] = vcat(num_tup_2[r], n - r)
-      end
-      c = vcat(Vector{Int64}[num_tup], num_tup_2)
-      f = cperm([reduce(vcat, c[i]) for i = 1:length(c)])
-      if k == r*d
-        w = [];
-        for j = 0:r-1
-          for i in 2:d
-            w = vcat(w, ro[c[j*d+i]])
+      if length(v) == 2
+          k = v[1]
+          nk = v[2]
+          num_list = []
+          for m = 0:nk-2
+            num_list = vcat(num_list, [m*k + r for r = 1:k-1])
+          end
+          for m = 0:nk-2
+            num_list = vcat(num_list, findall(==(-1*(2*sum([ro[i] for i = m*k+1:n-1])+ro[n])), ro)[1])
+          end
+          v0 = vcat(num_list, [n-r for r in 0:k-1])
+          v = [ro[v0[i]] for i = 1:length(v0)]
+          if typeof(w) <: Tuple
+            d=w[1]
+            r=w[2]
+            num_tup = [];
+            for m = 0:nk-2
+              num_tup = vcat(num_tup, findall(==(-1*(2*sum([ro[i] for i = m*k+1:n-1])+ro[n])), ro)[1]);
+            end
+            num_tup = vcat(num_tup,n);
+            num_tup_2 = [];
+            for r = 1:k-1
+              num_tup_2 = vcat(num_tup_2, [[]])
+              num_tup_2[r] = [m * k + r for m = 0:nk-2]
+              num_tup_2[r] = vcat(num_tup_2[r], n - r)
+            end
+            c = vcat(Vector{Int64}[num_tup], num_tup_2)
+            f = cperm([reduce(vcat, c[i]) for i = 1:length(c)])
+            if k == r*d
+              w = [];
+              for j = 0:r-1
+                for i in 2:d
+                  w = vcat(w, ro[c[j*d+i]])
+                end
+              end
+            else
+              w = [];
+              for i in 1:k-r*d
+              w = vcat(w, ro[c[i]])
+              end
+              for m = 1:r
+                for i in 2:d
+                  w = vcat(w, ro[c[k-m*d+i]])
+                end
+              end
+            end              
+          end
+      elseif length(v) == 0
+        v0 = [r for r = 1:n-1]
+        v = [ro[v0[i]] for i = 1:length(v0)]
+        d=w[1]
+        r=w[2]
+        num_tup_2=[];
+        if iseven(n) == true
+          for r = 1:Int(n/2-1)
+            num_tup_2 = vcat(num_tup_2, [[]])
+            num_tup_2[r] = [r,n-r]
+          end
+        else
+          for r = 1:Int((n-1)/2)
+            num_tup_2 = vcat(num_tup_2, [[]])
+            num_tup_2[r] = [r,n-r]
           end
         end
-      else
-        w = [];
-        for i in 1:k-r*d
-        w = vcat(w, ro[c[i]])
-        end
-        for m = 1:r
-          for i in 2:d
-            w = vcat(w, ro[c[k-m*d+i]])
-          end
-        end
+        c = vcat(num_tup_2)
+        f = cperm([reduce(vcat, c[i]) for i = 1:length(c)])
+        x_1 = vcat([i * d for i = 1:r], [n-i*d for i = 1:r])
+        x_2 = Set{Int}(x_1)
+        x = [z for z in x_2]
+        w2 = deleteat!(copy(v), sort(x))
+        w = w2
       end
     end
   elseif S == :D
