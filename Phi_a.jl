@@ -56,6 +56,8 @@ function p_a(R::RootSystem, v, w, f)
       m = hcat(transpose(m0), E[:,1], E[:,4], E[:,7]) #vectors for simple roots
     end
   end
+# assemble lists v= roots of subsystem and w = list of black nodes in subsystem
+    # TODO: even this out, so that we can give w = (r,d) as in Tits' paper for each root system
   v2 = []
   if S == :A
     if typeof(v[1]) <: Tuple
@@ -70,7 +72,7 @@ function p_a(R::RootSystem, v, w, f)
       end
       v = v2
     end
-    #anisotropic nodes
+    #anisotropic nodes. In A_n there are the possible subsystems of type A_i^(m_i) and A_mA_(n-m)
     if typeof(w) <: Tuple
       if length(w) == 1
         k = w[1]
@@ -228,12 +230,22 @@ function p_a(R::RootSystem, v, w, f)
       end
     end
   elseif S == :D
+        # here, we give w=(x,r,d), where (r,d) are as in Tits' paper and x is either 1
+        # or 2, depending on whether we have an automorphism act on A_(n-1) or not
     if v[1][1] == :A
       v2 = ro[1:v[1][2]]
       s = v[1]
       v = v2
-      k = w[1]
-      w2 = deleteat!(copy(v2), [i * k for i = 1:Int((n) / k)-1])
+      r = w[2]
+      d = w[3]
+      if w[1] == 1
+        w2 = deleteat!(copy(v2), [i * d for i = 1:Int((n) / d)-1])
+      elseif w[1] == 2
+        x_1 = vcat([i * d for i = 1:r], [n-i*d for i = 1:r])
+        x_2 = Set{Int}(x_1)
+        x = [z for z in x_2]
+        w2 = deleteat!(copy(v2), sort(x))
+      end
       w = w2
     elseif v[1][1] == :D && typeof(v[2]) <: Tuple
       z = transpose(E[:, v[1][2]-1] + E[:, v[1][2]])*inv(m0)
