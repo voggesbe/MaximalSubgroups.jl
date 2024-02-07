@@ -566,15 +566,16 @@ function simple_root_vector(R::RootSystem)
   return [root(R,i) for i = 1:rank(R)]
 end
 
-#Example:ro
-R = root_system(:C, 12)
+#Example: C_12
+#R = root_system(:C, 12)
 #v=(k,nk)
-v = (4,3)
+#v = (4,3)
 #w=(d,r) where r is the number of white dots and d is the dots between them
-w = (2,2)
-Phi_a, E_s, E_a, s_R = p_a(R,v,w,cperm());
+#w = (2,2)
+#Phi_a, E_s, E_a, s_R = p_a(R,v,w,cperm());
 
-R = root_system(:A, 23)
-v = [(:A, 7), 3]
-w = (2, 1, [2])
-f = subindex(R, v, w, 2)
+#Example: A_23
+#R = root_system(:A, 23)
+#v = [(:A, 7), 3]
+#w = (2, 1, [2])
+#f = subindex(R, v, w, 2)
