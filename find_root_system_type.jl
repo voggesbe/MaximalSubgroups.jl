@@ -109,16 +109,16 @@ function find_root_system_type(s_R, m0)
   return root_system_G
 end
 
-R = root_system(:C, 30);
-n = num_simple_roots(R);
-S,l = root_system_type(R)[1];
-ro = [root(R, i).vec for i = 1:num_roots(R)];
-sr= findall(==(-2*(sum([ro[i] for i = 2:n-1]))-ro[1]-ro[n] ), ro)[1];
-v0 = vcat([r for r = 1:n-1], sr);
-v = [ro[v0[i]] for i = 1:length(v0)];
-V2 = VectorSpace(QQ, n);
-V1 = quadratic_space(QQ, n);
-E = identity_matrix(QQ, n);
+#R = root_system(:C, 30);
+#n = num_simple_roots(R);
+#S,l = root_system_type(R)[1];
+#ro = [root(R, i).vec for i = 1:num_roots(R)];
+#sr= findall(==(-2*(sum([ro[i] for i = 2:n-1]))-ro[1]-ro[n] ), ro)[1];
+#v0 = vcat([r for r = 1:n-1], sr);
+#v = [ro[v0[i]] for i = 1:length(v0)];
+#V2 = VectorSpace(QQ, n);
+#V1 = quadratic_space(QQ, n);
+#E = identity_matrix(QQ, n);
 m0 = append!([V2(transpose(E[:, i ] - E[:, i+1])) for i = 1:n-1], [V2(transpose(2*E[:, n]))]);
 m0 = matrix(m0);
 m = transpose(m0);
