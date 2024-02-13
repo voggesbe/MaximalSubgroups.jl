@@ -119,7 +119,7 @@ end
 #V2 = VectorSpace(QQ, n);
 #V1 = quadratic_space(QQ, n);
 #E = identity_matrix(QQ, n);
-m0 = append!([V2(transpose(E[:, i ] - E[:, i+1])) for i = 1:n-1], [V2(transpose(2*E[:, n]))]);
-m0 = matrix(m0);
-m = transpose(m0);
-find_root_system_type(v, m0)
+#m0 = append!([V2(transpose(E[:, i ] - E[:, i+1])) for i = 1:n-1], [V2(transpose(2*E[:, n]))]);
+#m0 = matrix(m0);
+#m = transpose(m0);
+#find_root_system_type(v, m0)
