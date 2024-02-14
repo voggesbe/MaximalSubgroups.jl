@@ -261,7 +261,7 @@ function p_a(R::RootSystem, v, w, f)
         x1 = Set{Int}(x1)
         x1 = [z for z in x1]
       end
-      x2 = [v[1][2]+1+i*d2 for i = 1:r2]
+      x2 = [v[1][2]+i*d2 for i = 1:r2]
       if d2*r2 +1 == n-v[1][2]
         x2 = vcat(x2,[n,n-1])
         x2 = Set{Int}(x2)
