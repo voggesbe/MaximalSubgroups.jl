@@ -248,8 +248,8 @@ function p_a(R::RootSystem, v, w, f)
       end
       w = w2
     elseif v[1][1] == :D && typeof(v[2]) <: Tuple
-      z = transpose(E[:, 1] + E[:, 2])*inv(m0)
-      v2 = vcat(z,ro[1:v[1][2]-1],ro[v[1][2]:n])
+      z = transpose(-E[:, 1] - E[:, 2])*inv(m0)
+      v2 = vcat(z,ro[1:v[1][2]-1],ro[v[1][2]+1:n])
       d1 = w[1][1]
       r1 = w[1][2]
       d2 = w[2][1]
