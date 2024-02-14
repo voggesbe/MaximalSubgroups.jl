@@ -255,9 +255,20 @@ function p_a(R::RootSystem, v, w, f)
       d2 = w[2][1]
       r2 = w[2][2]
       x1 = [v[1][2]-i*d1+1 for i = 1:r1]
+      if d1*r1 +1 == v[1][2]
+        x1 = vcat(x1,[1,2])
+        x1 = Set{Int}(x1)
+        x1 = [z for z in x1]
+      end
       x2 = [v[1][2]+1+i*d2 for i = 1:r2]
+      if d2*r2 +1 == n-v[1][2]
+        x2 = vcat(x2,[n,n-1])
+        x2 = Set{Int}(x2)
+        x2 = [z for z in x2]
+      end
       x = vcat(x1,x2)
       w2 = deleteat!(copy(v2), sort(x))
+      w = w2
     elseif v[1][1] == :D && typeof(v[2]) <: Int
       v2 = []
       for i = 1:v[2]-1
