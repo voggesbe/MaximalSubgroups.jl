@@ -248,8 +248,16 @@ function p_a(R::RootSystem, v, w, f)
       end
       w = w2
     elseif v[1][1] == :D && typeof(v[2]) <: Tuple
-      z = transpose(E[:, v[1][2]-1] + E[:, v[1][2]])*inv(m0)
-      v2 = vcat(ro[1:v[1][2]-1],z,ro[v[1][2]:n])
+      z = transpose(E[:, 1] + E[:, 2])*inv(m0)
+      v2 = vcat(z,ro[1:v[1][2]-1],ro[v[1][2]:n])
+      d1 = w[1][1]
+      r1 = w[1][2]
+      d2 = w[2][1]
+      r2 = w[2][2]
+      x1 = [v[1][2]-i*d1+1 for i = 1:r1]
+      x2 = [v[1][2]+1+i*d2 for i = 1:r2]
+      x = vcat(x1,x2)
+      w2 = deleteat!(copy(v2), sort(x))
     elseif v[1][1] == :D && typeof(v[2]) <: Int
       v2 = []
       for i = 1:v[2]-1
@@ -557,6 +565,10 @@ function subindex(R, v, w, e)
           f = cperm(f2)
         end
       end
+    elseif length(v) == 2 && typeof(v[2]) <: Tuple
+       n1 = Int(length(ro)/2)
+       j1 = findall(==(-ro[n1]),ro)[1]
+      f = cperm([j1,1],[n,n-1])
     end
   end
   return f
