@@ -247,6 +247,7 @@ function p_a(R::RootSystem, v, w, f)
         w2 = deleteat!(copy(v2), sort(x))
       end
       w = w2
+      v = v2
     elseif v[1][1] == :D && typeof(v[2]) <: Tuple
       z = transpose(-E[:, 1] - E[:, 2])*inv(m0)
       v2 = vcat(z,ro[1:v[1][2]-1],ro[v[1][2]+1:n])
@@ -269,6 +270,7 @@ function p_a(R::RootSystem, v, w, f)
       x = vcat(x1,x2)
       w2 = deleteat!(copy(v2), sort(x))
       w = w2
+      v = v2
     elseif v[1][1] == :D && typeof(v[2]) <: Int
       v2 = []
       for i = 1:v[2]-1
