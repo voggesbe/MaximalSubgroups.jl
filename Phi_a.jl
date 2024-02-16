@@ -379,8 +379,8 @@ function p_a(R::RootSystem, v, w, f)
       append!(phi, [ro[i]])
     end
   end
-   if phi == []
-    return phi, I, B, [], F
+  if phi == []
+    return phi, I, B, []
   end
   #check what kind of root system we have
   # find the simple roots
@@ -436,11 +436,11 @@ function p_a(R::RootSystem, v, w, f)
   # if the JNF is the same as another cartan matrix of a root system with the same
   # rank
   root_system_G = []
+  types = [:A, :B, :C, :D, :E, :F, :G]
   for i = 1:length(irred_cartans)
     C1 = irred_cartans[i]
     m = rank(C1)
     JNF1 = jordan_normal_form(C1)[1]
-    types = [:A, :B, :C, :D, :E, :F, :G]
     j = 1
     Ma = matrix_space(QQ, m, m)
     JNF2 = jordan_normal_form(Ma(cartan_matrix(:A, m)))[1]
@@ -457,7 +457,7 @@ function p_a(R::RootSystem, v, w, f)
       end
     end
     x = 0
-    if types[j] in [:B, :C] && m!=2
+    if types[j] in [:B, :C] && m !=2
       for i = 1:nrows(C1)
         for j1 = 1:ncols(C1)
           l = [i, j1]
@@ -499,7 +499,7 @@ function p_a(R::RootSystem, v, w, f)
     end
   end
   #return phi, C, root_system_G
-  return root_system_G, I, B, s_R, F
+  return root_system_G, I, B, s_R
 end
 #Example1:
  # R = root_system(:A, 8)
@@ -563,6 +563,11 @@ function subindex(R, v, w, e)
       f = cperm(vcat(v1,v2))
     end
   elseif S == :D
+    V2 = VectorSpace(QQ, n)
+    E = identity_matrix(QQ, n)
+    m0 = [V2(transpose(E[:, i] - E[:, i+1])) for i = 1:n-1]
+    append!(m0, [V2(transpose(E[:, n-1] + E[:, n]))])
+    m0 = matrix(m0)
     if v[1][1] == :A
       j = findall(==(-ro[n]),ro)[1]
       if n % 2 == 0
@@ -579,9 +584,20 @@ function subindex(R, v, w, e)
         end
       end
     elseif length(v) == 2 && typeof(v[2]) <: Tuple
-       n1 = Int(length(ro)/2)
-       j1 = findall(==(-ro[n1]),ro)[1]
+      n1 = Int(length(ro)/2)
+      j1 = findall(==(-ro[n1]),ro)[1]
       f = cperm([j1,1],[n,n-1])
+    elseif length(v) == 2 && typeof(v[2]) <: Int
+      f1 = [[k+v[1][2]*i for i = 0:v[2]-1] for k = 1:(v[1][2]-1)]
+      if e % 2 == 1
+        f2 = [findall(==((E[i*v[1][2]-1,:]+E[i*v[1][2],:])*inv(m0)),ro)[1] for i = 1:v[2]]
+        f = cperm(vcat(f1,[f2]))
+      elseif e % 2 == 0
+        f2 = [findall(==((E[i*v[1][2]-1,:]+E[i*v[1][2],:])*inv(m0)),ro)[1] for i = 1:v[2]]
+        f3 = [[findall(==((E[i*v[1][2]-1,:]+E[i*v[1][2],:])*inv(m0)),ro)[1],i*v[1][2]-1] for i = 1:v[2]]
+        f = cperm(vcat(f1,[f2],f3))
+      end
+      f = cperm(vcat(f1,[f2]))
     end
   end
   return f
@@ -597,10 +613,16 @@ end
 #v = (4,3)
 #w=(d,r) where r is the number of white dots and d is the dots between them
 #w = (2,2)
-#Phi_a, E_s, E_a, s_R, F = p_a(R,v,w,cperm());
+#Phi_a, E_s, E_a, s_R = p_a(R,v,w,cperm());
 
 #Example: A_23
 #R = root_system(:A, 23)
 #v = [(:A, 7), 3]
 #w = (2, 1, [2])
+#f = subindex(R, v, w, 2)
+
+#Example: D_30
+#R = root_system(:D, 30);
+#v = [(:D, 20), (:D,10)]
+#w = ((4,3),(4,1))
 #f = subindex(R, v, w, 2)
