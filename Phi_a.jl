@@ -278,7 +278,6 @@ function p_a(R::RootSystem, v, w, f)
         z = transpose(E[:, a+v[1][2]-1] + E[:, a+v[1][2]])*inv(m0)
         v2 = vcat(v2,ro[a+1:a+v[1][2]-1],z)
       end
-      v = v2
       d = w[1]
       r = w[2]
       x1 = [[i*d + v[1][2]*j for i = 1:r] for j= 0:v[2]-1]
@@ -291,6 +290,7 @@ function p_a(R::RootSystem, v, w, f)
         x1 = [z for z in x]
       end
       w2 = deleteat!(copy(v2), sort(x1))
+      v = v2
       w = w2 
     end
   end
@@ -633,7 +633,12 @@ end
 #f = subindex(R, v, w, 2)
 
 #Example: D_30
-R = root_system(:D, 30);
-v = [(:D, 20), (:D,10)]
-w = ((4,3),(4,1))
-f = subindex(R, v, w, 2)
+#R = root_system(:D, 30);
+#v = [(:D, 20), (:D,10)]
+#w = ((4,3),(4,1))
+#f = subindex(R, v, w, 2)
+
+# v= [(:D,10),3]
+# w = (2,3)
+# f = subindex(R, v, w, 2)
+#Phi_a, E_s, E_a, s_R, F = p_a(R,v,w,f);
