@@ -597,7 +597,6 @@ function subindex(R, v, w, e)
         f3 = [[findall(==((E[i*v[1][2]-1,:]+E[i*v[1][2],:])*inv(m0)),ro)[1],i*v[1][2]-1] for i = 1:v[2]]
         f = cperm(vcat(f1,[f2],f3))
       end
-      f = cperm(vcat(f1,[f2]))
     end
   end
   return f
