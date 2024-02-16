@@ -379,8 +379,8 @@ function p_a(R::RootSystem, v, w, f)
       append!(phi, [ro[i]])
     end
   end
-  if phi == []
-    return phi, [], []
+   if phi == []
+    return phi, I, B, []
   end
   #check what kind of root system we have
   # find the simple roots
