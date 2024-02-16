@@ -380,7 +380,7 @@ function p_a(R::RootSystem, v, w, f)
     end
   end
    if phi == []
-    return phi, I, B, []
+    return phi, I, B, [], F
   end
   #check what kind of root system we have
   # find the simple roots
@@ -499,7 +499,7 @@ function p_a(R::RootSystem, v, w, f)
     end
   end
   #return phi, C, root_system_G
-  return root_system_G, I, B, s_R
+  return root_system_G, I, B, s_R, F
 end
 #Example1:
  # R = root_system(:A, 8)
@@ -597,7 +597,7 @@ end
 #v = (4,3)
 #w=(d,r) where r is the number of white dots and d is the dots between them
 #w = (2,2)
-#Phi_a, E_s, E_a, s_R = p_a(R,v,w,cperm());
+#Phi_a, E_s, E_a, s_R, F = p_a(R,v,w,cperm());
 
 #Example: A_23
 #R = root_system(:A, 23)
