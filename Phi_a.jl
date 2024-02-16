@@ -273,13 +273,25 @@ function p_a(R::RootSystem, v, w, f)
       v = v2
     elseif v[1][1] == :D && typeof(v[2]) <: Int
       v2 = []
-      for i = 1:v[2]-1
+      for i = 1:v[2]
         a = v[1][2]*(i-1)
         z = transpose(E[:, a+v[1][2]-1] + E[:, a+v[1][2]])*inv(m0)
         v2 = vcat(v2,ro[a+1:a+v[1][2]-1],z)
       end
-      a = v[1][2] * (v[2] - 1)
-      v2 = vcat(v2,ro[a+1:n])
+      v = v2
+      d = w[1]
+      r = w[2]
+      x1 = [[i*d + v[1][2]*j for i = 1:r] for j= 0:v[2]-1]
+      x1 = reduce(vcat, x1)
+      if d*r +1 == v[1][2]
+        x2 = [[v[1][2]*j-1,v[1][2]*j] for j= 1:v[2]]
+        x2 = reduce(vcat, x2)
+        x  = vcat(x1,x2)
+        x  = Set{Int}(x)
+        x1 = [z for z in x]
+      end
+      w2 = deleteat!(copy(v2), sort(x1))
+      w = w2 
     end
   end
   V0 = VectorSpace(QQ, n)
@@ -621,7 +633,7 @@ end
 #f = subindex(R, v, w, 2)
 
 #Example: D_30
-#R = root_system(:D, 30);
-#v = [(:D, 20), (:D,10)]
-#w = ((4,3),(4,1))
-#f = subindex(R, v, w, 2)
+R = root_system(:D, 30);
+v = [(:D, 20), (:D,10)]
+w = ((4,3),(4,1))
+f = subindex(R, v, w, 2)
