@@ -457,7 +457,7 @@ function p_a(R::RootSystem, v, w, f)
       end
     end
     x = 0
-    if types[j] in [:B, :C]
+    if types[j] in [:B, :C] && m!=2
       for i = 1:nrows(C1)
         for j1 = 1:ncols(C1)
           l = [i, j1]
