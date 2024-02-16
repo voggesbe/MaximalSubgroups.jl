@@ -392,7 +392,7 @@ function p_a(R::RootSystem, v, w, f)
     end
   end
   if phi == []
-    return phi, I, B, []
+    return phi, I, B, [], F
   end
   #check what kind of root system we have
   # find the simple roots
@@ -511,7 +511,7 @@ function p_a(R::RootSystem, v, w, f)
     end
   end
   #return phi, C, root_system_G
-  return root_system_G, I, B, s_R
+  return root_system_G, I, B, s_R, F
 end
 #Example1:
  # R = root_system(:A, 8)
