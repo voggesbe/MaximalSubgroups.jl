@@ -236,16 +236,12 @@ function p_a(R::RootSystem, v, w, f)
       v2 = ro[1:v[1][2]]
       s = v[1]
       v = v2
+      d = w[1]
       r = w[2]
-      d = w[3]
-      if w[1] == 1
-        w2 = deleteat!(copy(v2), [i * d for i = 1:Int((n) / d)-1])
-      elseif w[1] == 2
-        x_1 = vcat([i * d for i = 1:r], [n-i*d for i = 1:r])
-        x_2 = Set{Int}(x_1)
-        x = [z for z in x_2]
-        w2 = deleteat!(copy(v2), sort(x))
-      end
+      x_1 = vcat([i * d for i = 1:r], [n-i*d for i = 1:r])
+      x_2 = Set{Int}(x_1)
+      x = [z for z in x_2]
+      w2 = deleteat!(copy(v2), sort(x))
       w = w2
       v = v2
     elseif v[1][1] == :D && typeof(v[2]) <: Tuple
@@ -256,13 +252,17 @@ function p_a(R::RootSystem, v, w, f)
       d2 = w[2][1]
       r2 = w[2][2]
       x1 = [v[1][2]-i*d1+1 for i = 1:r1]
-      if d1*r1 +1 == v[1][2]
+      G = parent(f);
+      H = sub(G,[f])
+      o = orbit(H, n)
+      ol = Set{Int}([o[i] for i= 1: length(o)])
+      if d1 * r1 + 1 == v[1][2] && (n - 1 in ol)
         x1 = vcat(x1,[1,2])
         x1 = Set{Int}(x1)
         x1 = [z for z in x1]
       end
       x2 = [v[1][2]+i*d2 for i = 1:r2]
-      if d2*r2 +1 == n-v[1][2]
+      if d2 * r2 + 1 == n - v[1][2] && (n - 1 in ol)
         x2 = vcat(x2,[n,n-1])
         x2 = Set{Int}(x2)
         x2 = [z for z in x2]
@@ -588,7 +588,7 @@ function subindex(R, v, w, e)
       elseif n % 2 == 1
         if e == 1
           #f = cperm()
-          f = cperm([n,j])
+          f = cperm([n-1,n])
         elseif e == 2
           f1 = [[i,n-i] for i=1:Int(floor((n-1)/2))]
           f2 = vcat(f1,[[n,j]])
@@ -606,8 +606,10 @@ function subindex(R, v, w, e)
         f = cperm(vcat(f1,[f2]))
       elseif e % 2 == 0
         f2 = [findall(==((E[i*v[1][2]-1,:]+E[i*v[1][2],:])*inv(m0)),ro)[1] for i = 1:v[2]]
-        f3 = [[findall(==((E[i*v[1][2]-1,:]+E[i*v[1][2],:])*inv(m0)),ro)[1],i*v[1][2]-1] for i = 1:v[2]]
-        f = cperm(vcat(f1,[f2],f3))
+        #f3 = [[findall(==((E[i*v[1][2]-1,:]+E[i*v[1][2],:])*inv(m0)),ro)[1],i*v[1][2]-1] for i = 1:v[2]]
+        f1[end] = vcat(f1[end],f2)
+        #f = cperm(vcat(f1,[f2],f3))
+        f = cperm(f1)
       end
     end
   end
