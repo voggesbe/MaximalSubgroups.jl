@@ -253,7 +253,7 @@ function p_a(R::RootSystem, v, w, f)
       r2 = w[2][2]
       x1 = [v[1][2]-i*d1+1 for i = 1:r1]
       G = parent(f);
-      H = sub(G,[f])
+      H = sub(G,[f])[1]
       o = orbit(H, n)
       ol = Set{Int}([o[i] for i= 1: length(o)])
       if d1 * r1 + 1 == v[1][2] && (n - 1 in ol)
