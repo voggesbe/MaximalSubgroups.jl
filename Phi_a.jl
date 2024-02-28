@@ -74,51 +74,33 @@ function p_a(R::RootSystem, v, w, f)
     end
     #anisotropic nodes. In A_n there are the possible subsystems of type A_i^(m_i) and A_mA_(n-m)
     if typeof(w) <: Tuple
-      if length(w) == 1
-        k = w[1]
-        w2 = deleteat!(copy(s_ro), [i * k for i = 1:Int((n + 1) / k)-1])
-        w = w2
-      elseif length(w) == 2
-        k1 = w[1]
-        k2 = w[2]
-        if typeof(k1) <: Tuple && length(k1) == 2
-          d1 = k1[1]
-          r1 = k1[2]
-          x1_1 = vcat([i * d1 for i = 1:r1], [(i * d1 + s[1] - 2 * r1 * d1 + 1) for i = r1:2*r1-1])
-          x1_2 = Set{Int}(x1_1)
-          x1 = [x for x in x1_2]
-          w_1 = deleteat!(copy(v2[1:s[1]]), sort(x1))
-        elseif length(k1) == 1 || typeof(k1) <: Int
-          k1 = k1[1]
-          w_1 = deleteat!(copy(v2[1:s[1]]), [i * k1 for i = 1:Int((s[1] + 1) / k1)-1])
-        end
-        if typeof(k2) <: Tuple && length(k2) == 2
-          d2 = k2[1]
-          r2 = k2[2]
-          v3 = copy(v2[s[1]+1:end])
-          x2_1 = vcat([i * d2 for i = 1:r2], [(i * d2 + s[2] - 2 * r2 * d2 + 1) for i = r2:2*r2-1])
-          x2_2 = Set{Int}(x2_1)
-          x2 = [x for x in x2_2]
-          w_2 = deleteat!(copy(v3), sort(x2))
-        elseif length(k2) == 1 || typeof(k2) <: Int
-          w_2 = deleteat!(copy(v2[s[1]+1:end]), [i * w[2] for i = 1:Int((s[2] + 1) / k2)-1])
-        end
-        w = vcat(w_1, w_2)
-      elseif length(w) == 3
+      if typeof(w[1]) <: Tuple
+        d1 = w[1][1]
+        r1 = w[1][2]
+        d2 = w[2][1]
+        r2 = w[2][2]
+        x1 = [i * d1 for i = 1:r1] 
+        y1 = [i * d2+s[1] for i = 1:r2]
+        x = vcat(x1, y1)
+      else
         d = w[1]
         r = w[2]
-        v1 = [v2[i:i+s[1]-1] for i in [k*s[1]+1 for k = 0: s[2]-1]]
-        w0 = []
-        for j = 1: length(v1)
-          y = copy(v1[j])
-          x_1 = vcat([i * d for i = 1:r], [(i * d + s[1] - 2 * r * d + 1) for i = r:2*r-1])
-          x_2 = Set{Int}(x_1)
-          x = [z for z in x_2]
-          w_1 = deleteat!(copy(y), sort(x))
-          append!(w0,w_1)
+        G = parent(f);
+        H = sub(G,[f])[1]
+        o = orbit(H, n)
+        if length(o) == s[2]
+          x = [[i*d+j*s[1] for i = 1:r] for j = 0:s[2]-1]
+          x = reduce(vcat, x)
+        elseif length(o) == 2*s[2]
+          x1 = [[i*d+j*s[1] for i = 1:r] for j = 0:s[2]-1]
+          x1 = reduce(vcat, x1)
+          x2 = [[i*d+j*s[1]+s[1]-2*r*d for i = 1:r] for j = 0:s[2]-1]
+          x2 = reduce(vcat, x2)
+          x = vcat(x1,x2)
         end
-        w = w0
       end
+      w2 = deleteat!(copy(v2), sort(x))
+      w = w2
     end
   elseif S == :B
     if typeof(v) <: Tuple
