@@ -94,7 +94,7 @@ function p_a(R::RootSystem, v, w, f)
         elseif length(o) == 2*s[2]
           x1 = [[i*d+j*s[1] for i = 1:r] for j = 0:s[2]-1]
           x1 = reduce(vcat, x1)
-          x2 = [[(1+j)*s[1] - i*d +1 for i = 1:r] for j = 0:s[2]-1]
+          x2 = [[((1+j)*s[1] - i*d+1) for i = 1:r] for j = 0:s[2]-1]
           x2 = reduce(vcat, x2)
           x = vcat(x1,x2)
         end
@@ -531,7 +531,7 @@ function subsystem(R::RootSystem)
 end
 
 #get the permutation of roots for the inner automorphisms on the root systems of type A_i^(m_i) in A_n
-function subindex(R, v, w, e)
+function subindex(R, v, e)
   S,n = root_system_type(R)[1]
   ro = [root(R, i).vec for i = 1:num_roots(R)]
   if S == :A
