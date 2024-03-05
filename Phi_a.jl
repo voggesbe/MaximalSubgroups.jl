@@ -94,7 +94,7 @@ function p_a(R::RootSystem, v, w, f)
         elseif length(o) == 2*s[2]
           x1 = [[i*d+j*s[1] for i = 1:r] for j = 0:s[2]-1]
           x1 = reduce(vcat, x1)
-          x2 = [[i*d+j*s[1]+s[1]-2*r*d for i = 1:r] for j = 0:s[2]-1]
+          x2 = [[(1+j)*s[1] - i*d +1 for i = 1:r] for j = 0:s[2]-1]
           x2 = reduce(vcat, x2)
           x = vcat(x1,x2)
         end
