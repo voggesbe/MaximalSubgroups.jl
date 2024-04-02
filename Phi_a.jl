@@ -614,15 +614,15 @@ end
 #R = root_system(:A, 23)
 #v = [(:A, 7), 3]
 #w = (2, 1, [2])
-#f = subindex(R, v, w, 2)
+#f = subindex(R, v, 2)
 
 #Example: D_30
 #R = root_system(:D, 30);
 #v = [(:D, 20), (:D,10)]
 #w = ((4,3),(4,1))
-#f = subindex(R, v, w, 2)
+#f = subindex(R, v, 2)
 
 # v= [(:D,10),3]
 # w = (2,3)
-# f = subindex(R, v, w, 2)
+# f = subindex(R, v, 2)
 #Phi_a, E_s, E_a, s_R, F = p_a(R,v,w,f);
