@@ -1,19 +1,21 @@
 using Revise, Oscar
 using Graphs
 @doc raw"""
-    p_a(R::RootSystem, v::Vector{RootSystem}, w::Vector{RootSystem}, f::PermGroupElem)
+    p_a(R::RootSystem, v, w, f::PermGroupElem)
 
 Return the anisotropic system phi_a for the root system phi with quasimaximal subsystem
   specified by the roots in v and anisotropic roots specified in w and f where f
-  is a permutation specifying and index mapping from R to R
+  is a permutation specifying an index mapping from R to R
+  if the index of the quasimaximal subsystem is of the form X^(d,r)_n, where X=A,D
+    we can also type v = [(:X,n)], w = (d,r)
 """
-function p_a(R::RootSystem, v, w, f)
+function p_a(R::RootSystem, v, w, f::PermGroupElem)
   n = num_simple_roots(R)
   # compute the roots in the subroot system
   S,l = root_system_type(R)[1]
   ro = [root(R, i).vec for i = 1:num_roots(R)]
   s_ro = [simple_root_vector(R)[i].vec for i = 1:rank(R)]
-  #compute the orthogonal space
+  #emebed root system into vector space
   if S == :A
     #we embed into R^(n+1) with R[i]= e_i-e_i+1
     V2 = VectorSpace(QQ, n + 1)
@@ -57,14 +59,17 @@ function p_a(R::RootSystem, v, w, f)
     end
   end
 # assemble lists v= roots of subsystem and w = list of black nodes in subsystem
-    # TODO: even this out, so that we can give w = (r,d) as in Tits' paper for each root system
   v2 = []
-  if S == :A
-    if typeof(v[1]) <: Tuple
-      if typeof(v[2]) <: Tuple
+  if S == :A 
+    #for type A we allow entries of the form [(:A,m),n_m], [(:A,m),(:A,n-m-1)] and v::Vector{RootSystem}
+    if typeof(v[1]) <: Tuple 
+      #v is not of type Vector{RootSystem}
+      if typeof(v[2]) <: Tuple 
+      #v = [(:A,m),(:A,n-m-1)]
         v2 = vcat(ro[1:v[1][2]], ro[v[1][2]+2:v[1][2]+v[2][2]+1])
         s = (v[1][2], v[2][2])
       elseif typeof(v[2]) <: Int
+        # v= [(:A,m),n_m] 
         for i = 1:v[2]
           append!(v2, ro[(i-1)*(v[1][2]+1)+1:i*(v[1][2]+1)-1])
           s = (v[1][2], v[2])
@@ -72,9 +77,11 @@ function p_a(R::RootSystem, v, w, f)
       end
       v = v2
     end
-    #anisotropic nodes. In A_n there are the possible subsystems of type A_i^(m_i) and A_mA_(n-m)
+    #anisotropic nodes in v. For type A, we allow w = (d,r) if v = [(:A,m),n_m]
+    # or w = ((d1,r1),(dr,r2)) if v = [(:A,m),(:A,n-m-1)]
     if typeof(w) <: Tuple
       if typeof(w[1]) <: Tuple
+      # w = ((d1,r1),(dr,r2))
         d1 = w[1][1]
         r1 = w[1][2]
         d2 = w[2][1]
@@ -83,15 +90,18 @@ function p_a(R::RootSystem, v, w, f)
         y1 = [i * d2+s[1] for i = 1:r2]
         x = vcat(x1, y1)
       else
+      # w = (d,r)
         d = w[1]
         r = w[2]
+        # depending on whether f folds the A_m^(n_m) or not, w will be computed 
+        # differently
         G = parent(f);
         H = sub(G,[f])[1]
         o = orbit(H, n)
-        if length(o) == s[2]
+        if length(o) == s[2] #no folding
           x = [[i*d+j*s[1] for i = 1:r] for j = 0:s[2]-1]
           x = reduce(vcat, x)
-        elseif length(o) == 2*s[2]
+        elseif length(o) == 2*s[2] #folding
           x1 = [[i*d+j*s[1] for i = 1:r] for j = 0:s[2]-1]
           x1 = reduce(vcat, x1)
           x2 = [[((1+j)*s[1] - i*d+1) for i = 1:r] for j = 0:s[2]-1]
@@ -103,9 +113,10 @@ function p_a(R::RootSystem, v, w, f)
       w = w2
     end
   elseif S == :B
-    if typeof(v) <: Tuple
+    if typeof(v) <: Tuple # v is not yet a list of roots # for type B we only need to check for [(:B,m),n_m]
       k = v[1]
       nk = v[2]
+      #assemble v
       num_list = []
       for m = 0:nk-2
         num_list = vcat(num_list, [m * k + i for i = 1:k-1])
@@ -116,20 +127,23 @@ function p_a(R::RootSystem, v, w, f)
       v0 = vcat(num_list, [i for i in (nk-1)*k+1:n])
       v = [ro[v0[i]] for i = 1:length(v0)]
     end
-    if typeof(w) <: Tuple
-      num_tup = []
-      for m = 0:nk-2
-        num_tup = vcat(num_tup, findall(==(-1 * (sum([ro[i] for i = m*k+1:n]))), ro)[1])
-      end
-      num_tup = vcat(num_tup, n)
-      num_tup_2 = []
-      for r = 1:k-1
-        num_tup_2 = vcat(num_tup_2, [[]])
-        num_tup_2[r] = [m * k + r for m = 0:nk-2]
-        num_tup_2[r] = vcat(num_tup_2[r], n - r)
-      end
-      c = vcat(Vector{Int64}[num_tup], num_tup_2)
-      f = cperm([reduce(vcat, c[i]) for i = 1:length(c)])
+    #assemble f for [(:B,m),n_m], where all the (:B,m)s are cyclicly permuted
+    num_tup = []
+    for m = 0:nk-2
+      #find index in ro of the negative of first root in each (:B,m)
+      num_tup = vcat(num_tup, findall(==(-1 * (sum([ro[i] for i = m*k+1:n]))), ro)[1])
+    end
+    num_tup = vcat(num_tup, n)
+    num_tup_2 = []
+    # rth roots in all the (:B,m)s are in one orbit
+    for r = 1:k-1
+      num_tup_2 = vcat(num_tup_2, [[]])
+      num_tup_2[r] = [m * k + r for m = 0:nk-2]
+      num_tup_2[r] = vcat(num_tup_2[r], n - r)
+    end
+    c = vcat(Vector{Int64}[num_tup], num_tup_2)
+    f = cperm([reduce(vcat, c[i]) for i = 1:length(c)])
+    if typeof(w) <: Tuple  # w is not yet a list of roots  
       i = w[1]
       w = []
       for j = 1:i
@@ -137,8 +151,8 @@ function p_a(R::RootSystem, v, w, f)
       end
     end
   elseif S == :C
-    if typeof(v) <: Tuple
-      if length(v) == 2
+    if typeof(v) <: Tuple #v is not yet a list of roots
+      if length(v) == 2 #assemble v for type [(:C,m),n_m]
           k = v[1]
           nk = v[2]
           num_list = []
@@ -150,22 +164,25 @@ function p_a(R::RootSystem, v, w, f)
           end
           v0 = vcat(num_list, [n-r for r in 0:k-1])
           v = [ro[v0[i]] for i = 1:length(v0)]
-          if typeof(w) <: Tuple
-            d=w[1]
-            r=w[2]
-            num_tup = [];
-            for m = 0:nk-2
-              num_tup = vcat(num_tup, findall(==(-1*(2*sum([ro[i] for i = m*k+1:n-1])+ro[n])), ro)[1]);
-            end
-            num_tup = vcat(num_tup,n);
-            num_tup_2 = [];
-            for r = 1:k-1
-              num_tup_2 = vcat(num_tup_2, [[]])
-              num_tup_2[r] = [m * k + r for m = 0:nk-2]
-              num_tup_2[r] = vcat(num_tup_2[r], n - r)
-            end
-            c = vcat(Vector{Int64}[num_tup], num_tup_2)
-            f = cperm([reduce(vcat, c[i]) for i = 1:length(c)])
+          #assemble f 
+          num_tup = [];
+          #make an orbit out of the first roots
+          for m = 0:nk-2
+            num_tup = vcat(num_tup, findall(==(-1*(2*sum([ro[i] for i = m*k+1:n-1])+ro[n])), ro)[1]);
+          end
+          num_tup = vcat(num_tup,n);
+          #the kth roots are in the same orbit
+          num_tup_2 = [];
+          for r = 1:k-1
+            num_tup_2 = vcat(num_tup_2, [[]])
+            num_tup_2[r] = [m * k + r for m = 0:nk-2]
+            num_tup_2[r] = vcat(num_tup_2[r], n - r)
+          end
+          c = vcat(Vector{Int64}[num_tup], num_tup_2)
+          f = cperm([reduce(vcat, c[i]) for i = 1:length(c)])
+          if typeof(w) <: Tuple #w is not a list of roots
+            d = w[1]
+            r = w[2]
             if k == r*d
               w = [];
               for j = 0:r-1
@@ -185,11 +202,13 @@ function p_a(R::RootSystem, v, w, f)
               end
             end              
           end
-      elseif length(v) == 0
+      elseif length(v) == 0 #type [(:A,n-1)]
+        #assemble v
         v0 = [r for r = 1:n-1]
         v = [ro[v0[i]] for i = 1:length(v0)]
         d=w[1]
         r=w[2]
+        #assemble f 
         num_tup_2=[];
         if iseven(n) == true
           for r = 1:Int(n/2-1)
@@ -204,6 +223,7 @@ function p_a(R::RootSystem, v, w, f)
         end
         c = vcat(num_tup_2)
         f = cperm([reduce(vcat, c[i]) for i = 1:length(c)])
+        #assemble w
         x_1 = vcat([i * d for i = 1:r], [n-i*d for i = 1:r])
         x_2 = Set{Int}(x_1)
         x = [z for z in x_2]
@@ -214,10 +234,11 @@ function p_a(R::RootSystem, v, w, f)
   elseif S == :D
         # here, we give w=(x,r,d), where (r,d) are as in Tits' paper and x is either 1
         # or 2, depending on whether we have an automorphism act on A_(n-1) or not
-    if v[1][1] == :A
+    if v[1][1] == :A #subsystem is of type A
+      #assemble v
       v2 = ro[1:v[1][2]]
       s = v[1]
-      v = v2
+      #assemble w
       d = w[1]
       r = w[2]
       x_1 = vcat([i * d for i = 1:r], [n-i*d for i = 1:r])
@@ -226,9 +247,11 @@ function p_a(R::RootSystem, v, w, f)
       w2 = deleteat!(copy(v2), sort(x))
       w = w2
       v = v2
-    elseif v[1][1] == :D && typeof(v[2]) <: Tuple
+    elseif v[1][1] == :D && typeof(v[2]) <: Tuple #subsystem is of type [(:D,m),(:D,n-m)]
+      #assemble v
       z = transpose(-E[:, 1] - E[:, 2])*inv(m0)
       v2 = vcat(z,ro[1:v[1][2]-1],ro[v[1][2]+1:n])
+      #assemble w
       d1 = w[1][1]
       r1 = w[1][2]
       d2 = w[2][1]
@@ -238,6 +261,7 @@ function p_a(R::RootSystem, v, w, f)
       H = sub(G,[f])[1]
       o = orbit(H, n)
       ol = Set{Int}([o[i] for i= 1: length(o)])
+      #w depends on the action of f. If we have one orbit for the last two roots, they are the same colour
       if d1 * r1 + 1 == v[1][2] && (n - 1 in ol)
         x1 = vcat(x1,[1,2])
         x1 = Set{Int}(x1)
@@ -253,13 +277,15 @@ function p_a(R::RootSystem, v, w, f)
       w2 = deleteat!(copy(v2), sort(x))
       w = w2
       v = v2
-    elseif v[1][1] == :D && typeof(v[2]) <: Int
+    elseif v[1][1] == :D && typeof(v[2]) <: Int #subsystem is of type [(:D,m),n_m]
+      #assemble v
       v2 = []
       for i = 1:v[2]
         a = v[1][2]*(i-1)
         z = transpose(E[:, a+v[1][2]-1] + E[:, a+v[1][2]])*inv(m0)
         v2 = vcat(v2,ro[a+1:a+v[1][2]-1],z)
       end
+      #assemble w 
       d = w[1]
       r = w[2]
       x1 = [[i*d + v[1][2]*j for i = 1:r] for j= 0:v[2]-1]
@@ -313,7 +339,6 @@ function p_a(R::RootSystem, v, w, f)
 
   #change of basis to standard basis
   F = m*m2*inv(Ba)
-  #print(F)
 
   #compute the fixed point space under F, that is we want the eigenvectors with eigenvalue
   # 1 for F
@@ -347,8 +372,8 @@ function p_a(R::RootSystem, v, w, f)
   else
     U0 = orthogonal_complement(V1, matrix(w2))
   end
-
-  #compute the intersection of the fixed point space given by Es2 and U1
+ 
+  #compute the intersection of the fixed point space given by Es2 and U0
   M = append!([V2(transpose(Es2[:, i])) for i = 1:ncols(Es2)], [V2(-U0[i,:]) for i = 1:nrows(U0)])
   M = transpose(matrix(M))
   if length(Es2) == 0
@@ -437,8 +462,9 @@ function p_a(R::RootSystem, v, w, f)
     JNF1 = jordan_normal_form(C1)[1]
     j = 1
     Ma = matrix_space(QQ, m, m)
+    #check which jordan normal forms of the cartan matrices are the same
     JNF2 = jordan_normal_form(Ma(cartan_matrix(:A, m)))[1]
-    while JNF2 != JNF1
+    while JNF2 != JNF1 && j < 7
       j = j + 1
       if types[j] == :E && m in [6, 7, 8]
         JNF2 = jordan_normal_form(Ma(cartan_matrix(types[j], m)))[1]
@@ -446,10 +472,18 @@ function p_a(R::RootSystem, v, w, f)
         JNF2 = jordan_normal_form(Ma(cartan_matrix(types[j], m)))[1]
       elseif types[j] == :G && m == 2
         JNF2 = jordan_normal_form(Ma(cartan_matrix(types[j], m)))[1]
-      else
+      elseif types[j] == :D && m < 4
+        JNF2 = jordan_normal_form(Ma(cartan_matrix(:A, m)))[1]
+      elseif types[j] in [:A, :B, :C, :D]
         JNF2 = jordan_normal_form(Ma(cartan_matrix(types[j], m)))[1]
       end
     end
+    #if C1 wasn't actually defined by a root system
+    if JNF1 != JNF2
+      break 
+    end
+    #in case :B and :C the JNFs are the same, 
+    #here we need to take an extra look at the length of the roots
     x = 0
     if types[j] in [:B, :C] && m !=2
       for i = 1:nrows(C1)
@@ -485,6 +519,7 @@ function p_a(R::RootSystem, v, w, f)
       end
     end
     ro = [root_system_G[i][1] for i = 1:length(root_system_G)]
+    #if we already found this root system, add +1 to the number describing how many we have
     if (types[j], m) in ro
       j = findfirst(==((types[j], m)), ro)
       root_system_G[j][2] += 1
@@ -530,16 +565,16 @@ function subsystem(R::RootSystem)
   return s1,s2
 end
 
-#get the permutation of roots for the inner automorphisms on the root systems of type A_i^(m_i) in A_n
-function subindex(R, v, e)
+#get the permutation of roots for the inner automorphisms for type A and D
+function subindex(R::RootSystem, v, e::Int) 
   S,n = root_system_type(R)[1]
   ro = [root(R, i).vec for i = 1:num_roots(R)]
-  if S == :A
-    if typeof(v[2]) <: Int
+  if S == :A #for type A
+    if typeof(v[2]) <: Int #subsystem type A_i^(m_i) in A_n
       if (v[1][2]+1)*v[2] == n+1
-        if e == 1
+        if e == 1 #not folded
           f = cperm([[(j-1)*(v[1][2]+1)+k for j = 1:v[2]] for k = 1:v[1][2]])
-       elseif e == 2
+       elseif e == 2 #folded
           v1 = [[[k + m * (v[1][2] + 1), (m + 1) * (v[1][2] + 1) - k] for m = 0:(v[2]-1)] for k = 1:Int(floor(v[1][2] / 2))]
           v2 = [ reduce(vcat, v1[i]) for i= 1: length(v1)]
           if v[1][2] % 2 == 1
@@ -549,26 +584,27 @@ function subindex(R, v, e)
           f = cperm(v2)
         end
       end
-    elseif typeof(v[2]) <: Tuple
+    elseif typeof(v[2]) <: Tuple #subsystem type [(:A_m),(:A,n-m-1)]
       m = v[1][2]
       k = v[2][2]
       v1 = [[i,m-i+1] for i = 1:Int(floor(m/2))]
       v2 = [[m+1+i,n-i+1] for i = 1:Int(floor(k/2))]
       f = cperm(vcat(v1,v2))
     end
-  elseif S == :D
+  elseif S == :D #for type D
+    #embedding into the vector space
     V2 = VectorSpace(QQ, n)
     E = identity_matrix(QQ, n)
     m0 = [V2(transpose(E[:, i] - E[:, i+1])) for i = 1:n-1]
     append!(m0, [V2(transpose(E[:, n-1] + E[:, n]))])
     m0 = matrix(m0)
-    if v[1][1] == :A
+    if v[1][1] == :A #subsystem (:A,n-1)
       j = findall(==(-ro[n]),ro)[1]
-      if n % 2 == 0
+      if n % 2 == 0 #subsytem A_(n-1) has odd number of roots
         f1 = [[i,n-i] for i=1:Int(floor((n-1)/2))]
         f = cperm(f1)
-      elseif n % 2 == 1
-        if e == 1
+      elseif n % 2 == 1 #even number of roots 
+        if e == 1 
           #f = cperm()
           f = cperm([n-1,n])
         elseif e == 2
@@ -577,16 +613,16 @@ function subindex(R, v, e)
           f = cperm(f2)
         end
       end
-    elseif length(v) == 2 && typeof(v[2]) <: Tuple
+    elseif length(v) == 2 && typeof(v[2]) <: Tuple #subsystem type [(:D_m), (:D,n-m)]
       n1 = Int(length(ro)/2)
       j1 = findall(==(-ro[n1]),ro)[1]
       f = cperm([j1,1],[n,n-1])
-    elseif length(v) == 2 && typeof(v[2]) <: Int
+    elseif length(v) == 2 && typeof(v[2]) <: Int #subsytem type [(:D,m),n_m]
       f1 = [[k+v[1][2]*i for i = 0:v[2]-1] for k = 1:(v[1][2]-1)]
-      if e % 2 == 1
+      if e % 2 == 1 #no fold at the end of each D_m
         f2 = [findall(==((E[i*v[1][2]-1,:]+E[i*v[1][2],:])*inv(m0)),ro)[1] for i = 1:v[2]]
         f = cperm(vcat(f1,[f2]))
-      elseif e % 2 == 0
+      elseif e % 2 == 0 #folded
         f2 = [findall(==((E[i*v[1][2]-1,:]+E[i*v[1][2],:])*inv(m0)),ro)[1] for i = 1:v[2]]
         #f3 = [[findall(==((E[i*v[1][2]-1,:]+E[i*v[1][2],:])*inv(m0)),ro)[1],i*v[1][2]-1] for i = 1:v[2]]
         f1[end] = vcat(f1[end],f2)
