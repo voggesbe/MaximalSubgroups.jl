@@ -388,9 +388,9 @@ function p_a(R::RootSystem, v, w, f::PermGroupElem)
   #compute the intersection of orth_I with R
   B = transpose(orth_I)
   M = hcat(B,(-1)*m[:,1:(end-1)])
-  K3 = kernel(M)
-  K4 = K3[2][1:ncols(B), :]
-    I2 = B*K4
+
+
+
   phi = []
   for i = 1:num_roots(R)
     b = matrix([V2(ro[i]*m0)])
