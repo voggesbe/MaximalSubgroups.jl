@@ -11,10 +11,34 @@ and a *quasimaximal subsystem* described by a descriptor, the package:
 
 ## Installation
 
-```julia
-using Pkg
-Pkg.activate("MaximalSubgroups.jl")   # activate the package environment
-Pkg.instantiate()                     # or Pkg.resolve() if you have a Manifest.toml
+The package depends on [Oscar](https://github.com/H4cker/Oscar) (and its
+dependencies). Clone the repository, activate its environment, and let Julia
+resolve the required packages:
+
+```bash
+# 1. clone the package
+git clone https://github.com/<your-username>/MaximalSubgroups.jl.git
+cd MaximalSubgroups.jl
+
+# 2. start Julia from inside the package directory
+julia
+
+# 3. activate the package environment and install the dependencies
+julia> using Pkg
+julia> Pkg.instantiate()        # resolves from Project.toml
+# Julia, or Pkg.resolve()  # ...or Pkg.resolve() if a Manifest.toml already exists
+```
+`Pkg.instantiate()` downloads and precompiles everything the package needs
+(including Oscar) the first time you `using MaximalSubgroups`. Re-running it
+later is cheap and keeps the environment in sync if Project.toml changes.
+If you have a committed `Manifest.toml` and want an exact, reproducible
+environment, instantiate with `--manifest`.
+
+To update to the latest version of the package:
+```bash
+cd MaximalSubgroups.jl
+git pull
+julia -e 'using Pkg; Pkg.instantiate()'
 ```
 ## Usage
 

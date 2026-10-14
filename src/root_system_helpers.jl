@@ -227,7 +227,7 @@ function diagram_automorphism(R::RootSystem, v, e::Int)
     ro = [root(R, i).vec for i = 1:num_roots(R)]
 
     f = S == :A ? _diagram_automorphism_A(v, n, e) :
-        S == :D ? _diagram_automorphism_D(v, n, ro, e) :
+        S == :D ? _diagram_automorphism_D(v, n, ro, R, e) :
         throw(ArgumentError("subindex: only types A and D are implemented"))
 
     f === nothing &&
@@ -263,7 +263,7 @@ function _diagram_automorphism_A(v, n, e::Int)
 end
 
 # ---- type D ---------------------------------------------------------------
-function _diagram_automorphism_D(v, n, ro, e::Int)
+function _diagram_automorphism_D(v, n, ro, R, e::Int)
     _, _, E, m0 = simple_root_embedding(R)
     antipode(r) = findall(==(-r), ro)[1]                     # index of the root −r
 
