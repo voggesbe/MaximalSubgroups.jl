@@ -34,45 +34,45 @@ include("support/helpers.jl")
     # ---- descriptor_resolver.jl ----
     @testset "descriptor_resolver.jl (helpers)" begin
         @testset "_white_positions(d, r, size)" begin
-            @test _white_positions(2, 2, 5) == [2, 4]
-            @test _white_positions(3, 1, 5) == [3]
-            @test _white_positions(1, 3, 5) == [1, 2, 3]
-            @test_throws ArgumentError _white_positions(3, 2, 4)  # d*r > size
+            @test MaximalSubgroups._white_positions(2, 2, 5) == [2, 4]
+            @test MaximalSubgroups._white_positions(3, 1, 5) == [3]
+            @test MaximalSubgroups._white_positions(1, 3, 5) == [1, 2, 3]
+            @test_throws ArgumentError MaximalSubgroups._white_positions(3, 2, 4)  # d*r > size
         end
     end
 
-    # ---- validate_inpute_types.jl ----
-    @testset "validate_inpute_types.jl (_validate_v)" begin
+    # ---- validate_input_types.jl ----
+    @testset "validate_input_types.jl (_validate_v)" begin
         R6C = root_system(:C, 6)
         R5A = root_system(:A, 5)
 
         # valid descriptors per class
-        @test _validate_v(R6C, (3, 3)) === nothing     # (k, nk)
-        @test _validate_v(R6C, [:A, 5]) === nothing     # [:A, n-1] box inside C_6
-        @test _validate_v(R6C, [:D, 6]) === nothing     # [:D, n]   box inside C_6
-        @test _validate_v(R6C, [(:C, 2), (:C, 4)]) === nothing      # [(:C,m),(:C,n-m)]
-        @test _validate_v(R5A, [(:A, 2), 2]) === nothing # [(:A,m),n_m] fills A_5  ((2+1)*2 = 6)
+        @test MaximalSubgroups._validate_v(R6C, (3, 3)) === nothing     # (k, nk)
+        @test MaximalSubgroups._validate_v(R6C, [:A, 5]) === nothing     # [:A, n-1] box inside C_6
+        @test MaximalSubgroups._validate_v(R6C, [:D, 6]) === nothing     # [:D, n]   box inside C_6
+        @test MaximalSubgroups._validate_v(R6C, [(:C, 2), (:C, 4)]) === nothing      # [(:C,m),(:C,n-m)]
+        @test MaximalSubgroups._validate_v(R5A, [(:A, 2), 2]) === nothing # [(:A,m),n_m] fills A_5  ((2+1)*2 = 6)
 
         # invalid shapes
-        @test_throws ArgumentError _validate_v(R6C, [(:C, 3), (:C, 4)])  # 3+4 != 6
-        @test_throws ArgumentError _validate_v(R6C, (:A, 3))              # :A needs n-1 = 5
-        @test_throws ArgumentError _validate_v(R6C, [(:B, 2), (:B, 4)])   # wrong class
-        @test_throws ArgumentError _validate_v(R5A, [(:A, 3), 2])         # (4)*2 != 6
+        @test_throws ArgumentError MaximalSubgroups._validate_v(R6C, [(:C, 3), (:C, 4)])  # 3+4 != 6
+        @test_throws ArgumentError MaximalSubgroups._validate_v(R6C, (:A, 3))              # :A needs n-1 = 5
+        @test_throws ArgumentError MaximalSubgroups._validate_v(R6C, [(:B, 2), (:B, 4)])   # wrong class
+        @test_throws ArgumentError MaximalSubgroups._validate_v(R5A, [(:A, 3), 2])         # (4)*2 != 6
     end
 
-    @testset "validate_inpute_types.jl (_validate_w)" begin
+    @testset "validate_input_types.jl (_validate_w)" begin
         R6C = root_system(:C, 6)
         R6B = root_system(:B, 6)
 
-        @test _validate_w(R6C, (2, 2)) === nothing  # (d, r)
-        @test _validate_w(R6C, [(2, 2), (2, 1)]) === nothing  # C_m x C_{n-m}
-        @test _validate_w(R6B, (3,)) === nothing  # type B single entry
+        @test MaximalSubgroups._validate_w(R6C, (2, 2)) === nothing  # (d, r)
+        @test MaximalSubgroups._validate_w(R6C, [(2, 2), (2, 1)]) === nothing  # C_m x C_{n-m}
+        @test MaximalSubgroups._validate_w(R6B, (3,)) === nothing  # type B single entry
 
         @test_throws ArgumentError _validate_w(R6C, (0, 2))  # d >= 1
     end
 
-    # ---- diagram_automorphism.jl ----
-    @testset "diagram_automorphism.jl" begin
+    # ---- diagram_automorphism ----
+    @testset "diagram_automorphism" begin
         # A folded/reflected order-2 automorphism must still be a valid permutation.
         f = diagram_automorphism(root_system(:D, 4), (:A, 3), 2)
         @test f isa Oscar.PermGroupElem
@@ -105,33 +105,33 @@ include("support/helpers.jl")
     @testset "anisotropic_system.jl (reference expectations)" begin
         R = root_system(:B, 8)
         g, _, _, _, _ = anisotropic_system(R, [(:B, 3), (:B, 5)], (2, 4), cperm())
-        @test (:B, 6) in _components(g)
+        @test (:B, 6) in MaximalSubgroups._components(g)
 
         g, _, _, _, _ = anisotropic_system(R, [(:B, 4), 2], (3,), cperm())
-        @test (:B, 6) in _components(g)
-        @test (:A, 1) in _components(g)
+        @test (:B, 6) in MaximalSubgroups._components(g)
+        @test (:A, 1) in MaximalSubgroups._components(g)
 
         R = root_system(:C, 12)
         g, _, _, _, _ = anisotropic_system(R, (4, 3), (2, 2), cperm())
-        @test (:A, 5) in _components(g)
+        @test (:A, 5) in MaximalSubgroups._components(g)
 
         R = root_system(:C, 10)
         g, _, _, _, _ = anisotropic_system(R, [(:C, 4), (:C, 6)], [(2, 2), (2, 1)], cperm())
-        @test (:A, 1) in _components(g)
-        @test (:C, 4) in _components(g)
+        @test (:A, 1) in MaximalSubgroups._components(g)
+        @test (:C, 4) in MaximalSubgroups._components(g)
 
         R = root_system(:A, 23)
         v, w = [(:A, 7), 3], (2, 1)
         f = diagram_automorphism(R, v, 2)
         g, _, _, _, _ = anisotropic_system(R, v, w, f)
-        @test (:A, 5) in _components(g)
-        @test (:A, 11) in _components(g)
+        @test (:A, 5) in MaximalSubgroups._components(g)
+        @test (:A, 11) in MaximalSubgroups._components(g)
 
         R = root_system(:D, 30)
         v, w = [(:D, 20), (:D, 10)], ((4, 3), (4, 1))
         f = diagram_automorphism(R, v, 2)
         g, _, _, _, _ = anisotropic_system(R, v, w, f)
-        @test (:D, 14) in _components(g)
-        @test (:A, 3) in _components(g)
+        @test (:D, 14) in MaximalSubgroups._components(g)
+        @test (:A, 3) in MaximalSubgroups._components(g)
     end
 end

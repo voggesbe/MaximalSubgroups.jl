@@ -1,7 +1,7 @@
 # MaximalSubgroups.jl
 
 Julia package for the algebraic analysis of **maximal subgroups** via root
-systems. Given an irreducible root system `R` (types `A`, `B`, `C`, `D`, `E`)
+systems. Given an irreducible root system `R` (types `A`, `B`, `C`, `D`)
 and a *quasimaximal subsystem* described by a descriptor, the package:
 
 - computes the **anisotropic system** `φₐ` associated to the subsystem,
@@ -11,7 +11,7 @@ and a *quasimaximal subsystem* described by a descriptor, the package:
 
 ## Installation
 
-The package depends on [Oscar](https://github.com/H4cker/Oscar) (and its
+The package depends on [Oscar](https://github.com/oscar-system/Oscar.jl) (and its
 dependencies). Clone the repository, activate its environment, and let Julia
 resolve the required packages:
 
@@ -51,10 +51,10 @@ R = root_system(:B, 8)
 # v — quasimaximal subsystem descriptor
 # w   anisotropic (black) node descriptor
 # f   automorphism permutation (use cperm() or diagram_automorphism)
-Phi_a, I, B, s_R, F = p_a(R, [(:B, 3), (:B, 5)], (2, 4), cperm())
+Phi_a, I, B, s_R, F = anisotropic_system(R, [(:B, 3), (:B, 5)], (2, 4), cperm())
 ```
 
-`p_a` returns the classification of the resulting subsystem as a vector of
+`anisotropic_system` returns the classification of the resulting subsystem as a vector of
 `(type, rank)` pairs (e.g. `[(:B, 6), 1]`) together with supporting data.
 
 
@@ -71,8 +71,8 @@ f = diagram_automorphism(root_system(:D, 4), (:A, 3), 2)
 
 | Function | Purpose |
 |---|---|
-| `p_a(R, v, w, f)` | Anisotropic system of the quasimaximal subsystem specified by `v`, with anisotropic nodes `w` and automorphism `f`. |
-| `diagram_automorphism(R, v, e)` | Root permutation `f` for the folded/und folded inner automorphism of a type-`A`/`D` subsystem. |
+| `anisotropic_system(R, v, w, f)` | Anisotropic system of the quasimaximal subsystem specified by `v`, with anisotropic nodes `w` and automorphism `f`. |
+| `diagram_automorphism(R, v, e)` | Root permutation `f` for the folded/unfolded inner automorphism of a type-`A`/`D` subsystem. |
 | `permutation_to_matrix(f, ro, m0)` | Matrix `F` acting on the ambient space for a root-index permutation `f`. |
 
     The underscore-prefixed helpers (_validate_v, _validate_w, _white_positions,
@@ -103,15 +103,15 @@ julia --project=. test/runtests.jl
 
 The suite covers the vector-space helpers, descriptor validation, the
 diagram-automorphism permutations, the permutation-to-matrix conversion, and
-regression expectations taken from the worked examples in `anisotropic_system.jl`
+regression expectations.
 
 ## Layout
 ```
 src/
   vector_space_helpers.jl        # module/embedding helpers
   root_system_helpers.jl         # Cartan classification, diagram automorphisms
-  validate_inpute_types.jl       # _validate_v / _validate_w
+  validate_input_types.jl       # _validate_v / _validate_w
   descriptor_resolver.jl         # expand descriptors into explicit roots
   permutation_matrix.jl          # permutation → linear map
-  anisotropic_system.jl             # top-level p_a entry point
+  anisotropic_system.jl             # top-level anisotropic_system entry point
 ```

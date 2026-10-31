@@ -1,4 +1,4 @@
-#!/usr/env/env julia
+#!/usr/bin/env julia
 # ---------------------------------------------------------------------------
 # examples/example.jl
 #
@@ -7,8 +7,7 @@
 #     julia --project=. examples/example.jl
 #
 # Each block calls anisotropic_system (or one of the helpers) on a real Cartan type and
-# checks the result against the value documented in
-# src/anisotropic_system.jl.
+# checks the result against the expected value.
 # ---------------------------------------------------------------------------
 
 using Oscar
